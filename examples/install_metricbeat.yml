@@ -1,0 +1,38 @@
+---
+- hosts: server
+  become: yes
+  vars:
+    work_dir: ~/python_venv/ansible/examples
+    elasticsearch_host: localhost
+  tasks:
+  - name: rpm import
+    shell: |
+      rpm --import https://packages.elastic.co/GPG-KEY-elasticsearch
+    args:
+      warn: no
+  - name: add repo
+    block:
+    - copy:
+        src: "{{work_dir}}/elastic.repo"
+        dest: /tmp/elastic.repo
+        owner: root
+        group: root
+        mode: 0644
+    - shell: |
+        cp /tmp/elastic.repo /etc/yum.repos.d
+        chown root:root /etc/yum.repos.d/elastic.repo
+        chmod 0644 /etc/yum.repos.d/elastic.repo
+  - name: install
+    yum:
+      name: metricbeat
+      state: present
+  - name: configure
+    script: "{{work_dir}}/config_metricbeat.sh --host_name {{inventory_hostname}} --elasticsearch_host {{elasticsearch_host}}"
+  - debug:
+      msg: "{{work_dir}}/config_metricbeat.sh --host_name {{inventory_hostname}} --elasticsearch_host {{elasticsearch_host}}"
+  - name: start
+    service:
+      name: metricbeat
+      state: restarted
+      enabled: yes
+

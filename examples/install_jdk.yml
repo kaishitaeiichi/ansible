@@ -1,0 +1,16 @@
+---
+- hosts: server
+  become: yes
+  tasks:
+  - name: download jdk
+    get_url:
+      url: http://download.oracle.com/otn-pub/java/jdk/8u161-b12/2f38c3b165be4555a1fa6e98c45e0808/jdk-8u161-linux-x64.rpm
+      headers: "Cookie: oraclelicense=accept-securebackup-cookie"
+      validate_certs: no
+      dest: /tmp/jdk-8u161-linux-x64.rpm
+      mode: 0644
+  - name: install jdk
+    yum:
+      name: /tmp/jdk-8u161-linux-x64.rpm
+      state: present
+
